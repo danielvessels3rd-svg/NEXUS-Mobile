@@ -497,8 +497,9 @@ body::before {
 // N.E.X.U.S V6.2 — Mobile Bridge Stage A
 // Same mind. Not a second personality.
 
-const PASSCODE_KEY = "nexus_passcode_v6";
-let passcode = localStorage.getItem(PASSCODE_KEY) || "";
+// Passcode is session-only -- never persisted to localStorage.
+// Every time the app is opened, the Founder must authenticate.
+let passcode = "";
 
 const els = {
   passcodeScreen: document.getElementById("passcode-screen"),
@@ -605,7 +606,6 @@ els.passcodeSubmit.onclick = async () => {
   const ok = await verifyPasscode(code);
   if (ok) {
     passcode = code;
-    localStorage.setItem(PASSCODE_KEY, code);
     enterApp();
   } else {
     els.passcodeError.style.color = "#ff4466";
@@ -636,7 +636,6 @@ async function sendMessage() {
 
     if (sendResp.status === 401) {
       resolvePending(pendingBubble, "Session expired. Please reconnect.");
-      localStorage.removeItem(PASSCODE_KEY);
       setTimeout(() => location.reload(), 2000);
       return;
     }
@@ -682,14 +681,7 @@ els.textInput.addEventListener("input", () => {
   els.textInput.style.height = Math.min(els.textInput.scrollHeight, 100) + "px";
 });
 
-// Auto-reconnect if passcode saved
-if (passcode) {
-  verifyPasscode(passcode).then(ok => {
-    if (ok) enterApp();
-    else localStorage.removeItem(PASSCODE_KEY);
-  });
-}
+// No auto-reconnect -- passcode required on every session open.
 </script>
 </body>
 </html>
-
