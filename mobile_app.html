@@ -4,136 +4,578 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>N.E.X.U.S</title>
-<meta name="theme-color" content="#000000">
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiTi5FLlguVS5TIiwic2hvcnRfbmFtZSI6Ik5FWFVTIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwMDAwMDAiLCJ0aGVtZV9jb2xvciI6IiMwMDAwMDAifQ==">
+<meta name="theme-color" content="#000508">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  body {
-    margin: 0; padding: 0; background: #000;
-    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
-    color: #d0ffe8; height: 100vh; display: flex; flex-direction: column;
-    overflow: hidden;
-  }
-  #passcode-screen {
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; height: 100vh; gap: 16px; padding: 24px;
-  }
-  #passcode-screen h1 {
-    color: #00ff88; font-size: 22px; letter-spacing: 3px; margin-bottom: 8px;
-  }
-  #passcode-input {
-    background: #0a1410; border: 1px solid #00ff8855; color: #00ff88;
-    font-size: 24px; text-align: center; letter-spacing: 8px;
-    padding: 14px; border-radius: 12px; width: 100%; max-width: 280px;
-  }
-  #passcode-submit {
-    background: #00ff8822; border: 1px solid #00ff88; color: #00ff88;
-    padding: 12px 32px; border-radius: 10px; font-size: 16px; width: 100%;
-    max-width: 280px;
-  }
-  #passcode-error { color: #ff5555; font-size: 14px; min-height: 18px; }
+:root {
+  --cyan: #00e5ff;
+  --cyan-dim: #00e5ff44;
+  --cyan-faint: #00e5ff11;
+  --green: #00ff88;
+  --bg: #000508;
+  --bg2: #020d12;
+  --text: #b0d8e0;
+  --mono: 'Share Tech Mono', monospace;
+  --ui: 'Rajdhani', sans-serif;
+}
 
-  #app-screen { display: none; flex-direction: column; height: 100vh; }
-  header {
-    padding: 14px 16px; border-bottom: 1px solid #00ff8833;
-    display: flex; align-items: center; justify-content: space-between;
-  }
-  header h1 { font-size: 16px; color: #00ff88; letter-spacing: 2px; margin: 0; }
-  #status-dot {
-    width: 8px; height: 8px; border-radius: 50%; background: #555;
-  }
-  #status-dot.connected { background: #00ff88; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
 
-  #messages {
-    flex: 1; overflow-y: auto; padding: 16px; display: flex;
-    flex-direction: column; gap: 10px;
-  }
-  .msg { max-width: 85%; padding: 10px 14px; border-radius: 14px; font-size: 15px; line-height: 1.4; }
-  .msg.user {
-    align-self: flex-end; background: #1a3328; color: #d0ffe8;
-  }
-  .msg.nexus {
-    align-self: flex-start; background: #0a1410; color: #00ff88;
-    border: 1px solid #00ff8833;
-  }
-  .msg.pending { opacity: 0.5; font-style: italic; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--ui);
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
 
-  #input-row {
-    display: flex; padding: 12px; gap: 8px;
-    border-top: 1px solid #00ff8833;
-  }
-  #text-input {
-    flex: 1; background: #0a1410; border: 1px solid #00ff8855;
-    color: #d0ffe8; padding: 12px 14px; border-radius: 20px; font-size: 15px;
-  }
-  #send-btn {
-    background: #00ff8822; border: 1px solid #00ff88; color: #00ff88;
-    width: 44px; height: 44px; border-radius: 50%; font-size: 18px;
-  }
+/* Ambient scanline overlay */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,229,255,0.015) 2px,
+    rgba(0,229,255,0.015) 4px
+  );
+  pointer-events: none;
+  z-index: 100;
+}
+
+/* ── PASSCODE SCREEN ── */
+#passcode-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100dvh;
+  gap: 0;
+  padding: 32px 24px;
+}
+
+.boot-logo {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 6px;
+  color: var(--cyan);
+  text-align: center;
+  margin-bottom: 6px;
+  opacity: 0;
+  animation: fadeIn 0.8s 0.2s forwards;
+}
+
+.boot-title {
+  font-family: var(--mono);
+  font-size: 28px;
+  letter-spacing: 10px;
+  color: var(--cyan);
+  text-align: center;
+  text-shadow: 0 0 20px var(--cyan), 0 0 40px var(--cyan-dim);
+  margin-bottom: 4px;
+  opacity: 0;
+  animation: fadeIn 0.8s 0.5s forwards;
+}
+
+.boot-sub {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 3px;
+  color: var(--cyan-dim);
+  text-align: center;
+  margin-bottom: 48px;
+  opacity: 0;
+  animation: fadeIn 0.6s 0.9s forwards;
+}
+
+/* Corner brackets decoration */
+.bracket-box {
+  position: relative;
+  width: 100%;
+  max-width: 300px;
+  padding: 28px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  opacity: 0;
+  animation: fadeIn 0.6s 1.1s forwards;
+}
+.bracket-box::before, .bracket-box::after,
+.bracket-box .br-bl::before, .bracket-box .br-bl::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  border-color: var(--cyan);
+  border-style: solid;
+  opacity: 0.5;
+}
+.bracket-box::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.bracket-box::after  { top: 0; right: 0; border-width: 1px 1px 0 0; }
+.bracket-box .br-bl::before { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+.bracket-box .br-bl::after  { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+
+#passcode-input {
+  background: var(--bg2);
+  border: 1px solid var(--cyan-dim);
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 20px;
+  text-align: center;
+  letter-spacing: 10px;
+  padding: 14px 16px;
+  border-radius: 4px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#passcode-input:focus {
+  border-color: var(--cyan);
+  box-shadow: 0 0 12px var(--cyan-dim), inset 0 0 8px rgba(0,229,255,0.05);
+}
+#passcode-input::placeholder { color: var(--cyan-dim); letter-spacing: 4px; font-size: 13px; }
+
+#passcode-submit {
+  background: transparent;
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 4px;
+  padding: 13px;
+  border-radius: 4px;
+  width: 100%;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+#passcode-submit:active {
+  background: var(--cyan-faint);
+  box-shadow: 0 0 16px var(--cyan-dim);
+}
+
+#passcode-error {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: #ff4466;
+  text-align: center;
+  letter-spacing: 1px;
+  min-height: 16px;
+}
+
+/* ── APP SCREEN ── */
+#app-screen {
+  display: none;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+/* Header */
+#app-header {
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid var(--cyan-dim);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg);
+  flex-shrink: 0;
+  position: relative;
+}
+#app-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.4;
+}
+
+.header-left { display: flex; flex-direction: column; gap: 2px; }
+.header-title {
+  font-family: var(--mono);
+  font-size: 16px;
+  letter-spacing: 5px;
+  color: var(--cyan);
+  text-shadow: 0 0 10px var(--cyan-dim);
+}
+.header-sub {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 2px;
+  color: var(--cyan-dim);
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#status-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: #444;
+  transition: color 0.3s;
+}
+#status-label.connected { color: var(--green); }
+
+#status-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: #333;
+  transition: background 0.3s, box-shadow 0.3s;
+  flex-shrink: 0;
+}
+#status-dot.connected {
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green), 0 0 12px rgba(0,255,136,0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 6px var(--green), 0 0 12px rgba(0,255,136,0.3); }
+  50% { box-shadow: 0 0 10px var(--green), 0 0 20px rgba(0,255,136,0.5); }
+}
+
+/* Messages */
+#messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  scroll-behavior: smooth;
+}
+#messages::-webkit-scrollbar { width: 2px; }
+#messages::-webkit-scrollbar-track { background: transparent; }
+#messages::-webkit-scrollbar-thumb { background: var(--cyan-dim); border-radius: 2px; }
+
+.msg-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  animation: msgIn 0.2s ease-out;
+}
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.msg-wrap.user { align-items: flex-end; }
+.msg-wrap.nexus { align-items: flex-start; }
+
+.msg-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  letter-spacing: 2px;
+  padding: 0 4px;
+}
+.msg-wrap.user .msg-label { color: #446655; }
+.msg-wrap.nexus .msg-label { color: var(--cyan-dim); }
+
+.msg {
+  max-width: 88%;
+  padding: 10px 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  font-family: var(--ui);
+  font-weight: 400;
+  border-radius: 3px;
+  position: relative;
+}
+
+.msg-wrap.user .msg {
+  background: #0d2420;
+  color: #c0e8d8;
+  border: 1px solid #1a4035;
+  border-radius: 12px 12px 3px 12px;
+}
+
+.msg-wrap.nexus .msg {
+  background: var(--bg2);
+  color: #a8dde8;
+  border: 1px solid var(--cyan-dim);
+  border-radius: 3px 12px 12px 12px;
+}
+.msg-wrap.nexus .msg::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; height: 100%;
+  background: var(--cyan);
+  border-radius: 2px 0 0 2px;
+  opacity: 0.6;
+}
+
+.msg.pending {
+  opacity: 0.5;
+  font-style: italic;
+  color: var(--cyan-dim) !important;
+}
+
+/* Typing indicator dots */
+.typing-dots {
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  padding: 2px 0;
+}
+.typing-dots span {
+  width: 5px; height: 5px;
+  background: var(--cyan);
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: dot-blink 1.2s infinite;
+}
+.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
+.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-blink {
+  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1); }
+}
+
+/* Empty state */
+#empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  opacity: 0.25;
+  pointer-events: none;
+  font-family: var(--mono);
+}
+#empty-state .es-icon { font-size: 28px; color: var(--cyan); }
+#empty-state .es-text { font-size: 10px; letter-spacing: 3px; color: var(--cyan); }
+
+/* Input row */
+#input-row {
+  display: flex;
+  padding: 10px 12px;
+  gap: 8px;
+  border-top: 1px solid var(--cyan-dim);
+  background: var(--bg);
+  flex-shrink: 0;
+  align-items: flex-end;
+  position: relative;
+}
+#input-row::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+  opacity: 0.3;
+}
+
+#text-input {
+  flex: 1;
+  background: var(--bg2);
+  border: 1px solid var(--cyan-dim);
+  color: var(--text);
+  padding: 11px 14px;
+  border-radius: 20px;
+  font-size: 15px;
+  font-family: var(--ui);
+  font-weight: 400;
+  outline: none;
+  resize: none;
+  max-height: 100px;
+  line-height: 1.4;
+  transition: border-color 0.2s;
+}
+#text-input:focus {
+  border-color: var(--cyan);
+}
+#text-input::placeholder { color: #2a4a50; }
+
+#send-btn {
+  background: var(--cyan-faint);
+  border: 1px solid var(--cyan);
+  color: var(--cyan);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  font-size: 18px;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, box-shadow 0.15s;
+}
+#send-btn:active {
+  background: rgba(0,229,255,0.15);
+  box-shadow: 0 0 14px var(--cyan-dim);
+}
+#send-btn svg { width: 18px; height: 18px; stroke: var(--cyan); fill: none; stroke-width: 2; }
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: #0a1f25;
+  border: 1px solid var(--cyan-dim);
+  color: var(--cyan);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 8px 16px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+  z-index: 200;
+}
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 </style>
 </head>
 <body>
 
+<!-- PASSCODE SCREEN -->
 <div id="passcode-screen">
-  <h1>N · E · X · U · S</h1>
-  <input id="passcode-input" type="password" inputmode="numeric" placeholder="passcode" maxlength="32">
-  <button id="passcode-submit">Connect</button>
-  <div id="passcode-error"></div>
-</div>
-
-<div id="app-screen">
-  <header>
-    <h1>N.E.X.U.S</h1>
-    <div id="status-dot"></div>
-  </header>
-  <div id="messages"></div>
-  <div id="input-row">
-    <input id="text-input" type="text" placeholder="Message N.E.X.U.S..." autocomplete="off">
-    <button id="send-btn">↑</button>
+  <div class="boot-logo">PROJECT 001</div>
+  <div class="boot-title">N·E·X·U·S</div>
+  <div class="boot-sub">NEURAL EXECUTION &amp; UTILITY SYSTEM · V6.2</div>
+  <div class="bracket-box">
+    <div class="br-bl"></div>
+    <input id="passcode-input" type="password" placeholder="ACCESS CODE" autocomplete="off">
+    <button id="passcode-submit">CONNECT</button>
+    <div id="passcode-error"></div>
   </div>
 </div>
 
-<script>
-// V6.2 Stage A -- Mobile Web App
-// Per directive: "this is NOT a second personality, it is the same
-// N.E.X.U.S." This app contains zero command logic of its own -- it
-// only sends raw text to the relay and displays whatever the REAL
-// desktop N.E.X.U.S responds with. No local intelligence, no
-// fallback responses, no fabricated continuity if the connection
-// drops -- failures are shown honestly, never invented.
+<!-- APP SCREEN -->
+<div id="app-screen">
+  <div id="app-header">
+    <div class="header-left">
+      <div class="header-title">N·E·X·U·S</div>
+      <div class="header-sub">MOBILE BRIDGE · V6.2</div>
+    </div>
+    <div class="header-right">
+      <div id="status-label">OFFLINE</div>
+      <div id="status-dot"></div>
+    </div>
+  </div>
 
-const PASSCODE_KEY = "nexus_passcode";
+  <div id="messages">
+    <div id="empty-state">
+      <div class="es-icon">◈</div>
+      <div class="es-text">AWAITING INPUT</div>
+    </div>
+  </div>
+
+  <div id="input-row">
+    <textarea id="text-input" rows="1" placeholder="Message N.E.X.U.S..." autocomplete="off"></textarea>
+    <button id="send-btn">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+    </button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// N.E.X.U.S V6.2 — Mobile Bridge Stage A
+// Same mind. Not a second personality.
+
+const PASSCODE_KEY = "nexus_passcode_v6";
 let passcode = localStorage.getItem(PASSCODE_KEY) || "";
 
-const passcodeScreen = document.getElementById("passcode-screen");
-const appScreen = document.getElementById("app-screen");
-const passcodeInput = document.getElementById("passcode-input");
-const passcodeSubmit = document.getElementById("passcode-submit");
-const passcodeError = document.getElementById("passcode-error");
-const messagesEl = document.getElementById("messages");
-const textInput = document.getElementById("text-input");
-const sendBtn = document.getElementById("send-btn");
-const statusDot = document.getElementById("status-dot");
+const els = {
+  passcodeScreen: document.getElementById("passcode-screen"),
+  appScreen:      document.getElementById("app-screen"),
+  passcodeInput:  document.getElementById("passcode-input"),
+  passcodeSubmit: document.getElementById("passcode-submit"),
+  passcodeError:  document.getElementById("passcode-error"),
+  messages:       document.getElementById("messages"),
+  emptyState:     document.getElementById("empty-state"),
+  textInput:      document.getElementById("text-input"),
+  sendBtn:        document.getElementById("send-btn"),
+  statusDot:      document.getElementById("status-dot"),
+  statusLabel:    document.getElementById("status-label"),
+  toast:          document.getElementById("toast"),
+};
 
-function addMessage(text, role, pending) {
-  const div = document.createElement("div");
-  div.className = "msg " + role + (pending ? " pending" : "");
-  div.textContent = text;
-  messagesEl.appendChild(div);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
-  return div;
+// ── TOAST ──
+function showToast(msg, duration = 2500) {
+  els.toast.textContent = msg;
+  els.toast.classList.add("show");
+  setTimeout(() => els.toast.classList.remove("show"), duration);
+}
+
+// ── STATUS ──
+function setStatus(connected) {
+  els.statusDot.className = connected ? "connected" : "";
+  els.statusLabel.className = connected ? "connected" : "";
+  els.statusLabel.textContent = connected ? "ONLINE" : "OFFLINE";
 }
 
 async function checkHealth() {
   try {
     const r = await fetch("/health");
-    const data = await r.json();
-    statusDot.classList.toggle("connected", data.desktop_connected);
-  } catch (e) {
-    statusDot.classList.remove("connected");
+    const d = await r.json();
+    setStatus(d.desktop_connected === true);
+  } catch {
+    setStatus(false);
   }
 }
 
+// ── MESSAGES ──
+let msgCount = 0;
+
+function addMessage(text, role, pending = false) {
+  if (msgCount === 0) els.emptyState.style.display = "none";
+  msgCount++;
+
+  const wrap = document.createElement("div");
+  wrap.className = `msg-wrap ${role}`;
+
+  const label = document.createElement("div");
+  label.className = "msg-label";
+  label.textContent = role === "user" ? "YOU" : "N.E.X.U.S";
+
+  const bubble = document.createElement("div");
+  bubble.className = "msg" + (pending ? " pending" : "");
+
+  if (pending) {
+    bubble.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+  } else {
+    bubble.textContent = text;
+  }
+
+  wrap.appendChild(label);
+  wrap.appendChild(bubble);
+  els.messages.appendChild(wrap);
+  els.messages.scrollTop = els.messages.scrollHeight;
+  return bubble;
+}
+
+function resolvePending(bubble, text) {
+  bubble.innerHTML = "";
+  bubble.textContent = text;
+  bubble.classList.remove("pending");
+}
+
+// ── AUTH ──
 async function verifyPasscode(code) {
   try {
     const r = await fetch("/phone/send", {
@@ -142,55 +584,58 @@ async function verifyPasscode(code) {
       body: JSON.stringify({ text: "__connection_test__" }),
     });
     return r.status !== 401;
-  } catch (e) {
+  } catch {
     return false;
   }
 }
 
 async function enterApp() {
-  passcodeScreen.style.display = "none";
-  appScreen.style.display = "flex";
+  els.passcodeScreen.style.display = "none";
+  els.appScreen.style.display = "flex";
   checkHealth();
   setInterval(checkHealth, 15000);
-  textInput.focus();
+  els.textInput.focus();
 }
 
-passcodeSubmit.onclick = async () => {
-  const code = passcodeInput.value.trim();
+els.passcodeSubmit.onclick = async () => {
+  const code = els.passcodeInput.value.trim();
   if (!code) return;
-  passcodeError.textContent = "Connecting...";
+  els.passcodeError.textContent = "CONNECTING...";
+  els.passcodeError.style.color = "var(--cyan-dim)";
   const ok = await verifyPasscode(code);
   if (ok) {
     passcode = code;
     localStorage.setItem(PASSCODE_KEY, code);
     enterApp();
   } else {
-    passcodeError.textContent = "Incorrect passcode, or relay unreachable.";
+    els.passcodeError.style.color = "#ff4466";
+    els.passcodeError.textContent = "ACCESS DENIED — check passcode or relay status";
   }
 };
 
-passcodeInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") passcodeSubmit.click();
+els.passcodeInput.addEventListener("keydown", e => {
+  if (e.key === "Enter") { e.preventDefault(); els.passcodeSubmit.click(); }
 });
 
+// ── SEND ──
 async function sendMessage() {
-  const text = textInput.value.trim();
+  const text = els.textInput.value.trim();
   if (!text) return;
-  textInput.value = "";
+  els.textInput.value = "";
+  els.textInput.style.height = "";
   addMessage(text, "user");
 
-  const pendingEl = addMessage("...", "nexus", true);
+  const pendingBubble = addMessage("", "nexus", true);
 
   try {
     const sendResp = await fetch("/phone/send", {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-nexus-passcode": passcode },
-      body: JSON.stringify({ text: text }),
+      body: JSON.stringify({ text }),
     });
 
     if (sendResp.status === 401) {
-      pendingEl.textContent = "Session expired, Sir. Please reconnect.";
-      pendingEl.classList.remove("pending");
+      resolvePending(pendingBubble, "Session expired. Please reconnect.");
       localStorage.removeItem(PASSCODE_KEY);
       setTimeout(() => location.reload(), 2000);
       return;
@@ -198,42 +643,48 @@ async function sendMessage() {
 
     const { request_id } = await sendResp.json();
 
-    // Poll for the REAL response -- never fabricate one locally.
-    // Honest timeout if the desktop never picks it up (e.g. desktop
-    // N.E.X.U.S isn't running right now).
+    // Poll for real desktop response — never fabricate
     let attempts = 0;
-    const maxAttempts = 40; // ~40 seconds
+    const MAX = 40;
     const poll = async () => {
-      attempts++;
-      const pollResp = await fetch(`/phone/poll/${request_id}`, {
-        headers: { "x-nexus-passcode": passcode },
-      });
-      const data = await pollResp.json();
-      if (data.ready) {
-        pendingEl.textContent = data.text;
-        pendingEl.classList.remove("pending");
-      } else if (attempts >= maxAttempts) {
-        pendingEl.textContent = "No response, Sir. Desktop N.E.X.U.S may be offline.";
-        pendingEl.classList.remove("pending");
-      } else {
-        setTimeout(poll, 1000);
+      try {
+        const r = await fetch(`/phone/poll/${request_id}`, {
+          headers: { "x-nexus-passcode": passcode },
+        });
+        const d = await r.json();
+        if (d.ready) {
+          resolvePending(pendingBubble, d.text);
+        } else if (++attempts >= MAX) {
+          resolvePending(pendingBubble, "No response, Sir. Desktop N.E.X.U.S may be offline.");
+        } else {
+          setTimeout(poll, 1000);
+        }
+      } catch {
+        resolvePending(pendingBubble, "Connection lost, Sir.");
       }
     };
     poll();
-  } catch (e) {
-    pendingEl.textContent = "Connection error, Sir.";
-    pendingEl.classList.remove("pending");
+
+  } catch {
+    resolvePending(pendingBubble, "Relay unreachable, Sir.");
   }
 }
 
-sendBtn.onclick = sendMessage;
-textInput.addEventListener("keydown", (e) => {
-  if (e.key === "Enter") sendMessage();
+els.sendBtn.onclick = sendMessage;
+
+els.textInput.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
-// Auto-reconnect if a passcode was already saved
+// Auto-resize textarea
+els.textInput.addEventListener("input", () => {
+  els.textInput.style.height = "auto";
+  els.textInput.style.height = Math.min(els.textInput.scrollHeight, 100) + "px";
+});
+
+// Auto-reconnect if passcode saved
 if (passcode) {
-  verifyPasscode(passcode).then((ok) => {
+  verifyPasscode(passcode).then(ok => {
     if (ok) enterApp();
     else localStorage.removeItem(PASSCODE_KEY);
   });
@@ -241,3 +692,4 @@ if (passcode) {
 </script>
 </body>
 </html>
+
