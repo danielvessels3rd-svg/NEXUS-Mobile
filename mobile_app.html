@@ -442,7 +442,27 @@ body::before {
   transform: translateX(-50%) translateY(0);
 }
 
-@keyframes fadeIn {
+#voice-btn {
+  background: transparent;
+  border: 1px solid var(--cyan-dim);
+  color: var(--cyan);
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+#voice-btn.muted {
+  color: #444;
+  border-color: #333;
+}
+#voice-btn:active { background: var(--cyan-faint); }
+
+
   from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
@@ -471,6 +491,14 @@ body::before {
       <div class="header-sub">MOBILE BRIDGE · V6.2</div>
     </div>
     <div class="header-right">
+      <button id="voice-btn" title="Toggle voice">
+        <svg id="voice-icon-on" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+        </svg>
+        <svg id="voice-icon-off" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
+        </svg>
+      </button>
       <div id="status-label">OFFLINE</div>
       <div id="status-dot"></div>
     </div>
@@ -516,7 +544,60 @@ const els = {
   toast:          document.getElementById("toast"),
 };
 
-// ── TOAST ──
+// ── VOICE (TTS) ──
+let voiceEnabled = true;
+let ttsVoice = null;
+
+// Load voices — on mobile they load async
+function loadVoices() {
+  const voices = window.speechSynthesis.getVoices();
+  // Prefer a deep English male voice
+  const preferred = [
+    v => v.name.toLowerCase().includes("google uk english male"),
+    v => v.name.toLowerCase().includes("microsoft david"),
+    v => v.name.toLowerCase().includes("alex"),
+    v => v.lang === "en-US" && v.name.toLowerCase().includes("male"),
+    v => v.lang === "en-GB",
+    v => v.lang.startsWith("en"),
+  ];
+  for (const test of preferred) {
+    const match = voices.find(test);
+    if (match) { ttsVoice = match; break; }
+  }
+}
+loadVoices();
+if (window.speechSynthesis.onvoiceschanged !== undefined) {
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function nexusSpeak(text) {
+  if (!voiceEnabled) return;
+  if (!window.speechSynthesis) return;
+  // Strip connection test responses
+  if (text === "CONNECTION_TEST_OK") return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(text);
+  if (ttsVoice) utt.voice = ttsVoice;
+  utt.rate  = 0.88;   // slightly slower = more deliberate
+  utt.pitch = 0.75;   // lower pitch = authoritative
+  utt.volume = 1.0;
+  window.speechSynthesis.speak(utt);
+}
+
+const voiceBtn   = document.getElementById("voice-btn");
+const iconOn     = document.getElementById("voice-icon-on");
+const iconOff    = document.getElementById("voice-icon-off");
+
+voiceBtn.onclick = () => {
+  voiceEnabled = !voiceEnabled;
+  voiceBtn.classList.toggle("muted", !voiceEnabled);
+  iconOn.style.display  = voiceEnabled ? "" : "none";
+  iconOff.style.display = voiceEnabled ? "none" : "";
+  if (!voiceEnabled) window.speechSynthesis.cancel();
+  showToast(voiceEnabled ? "VOICE ON" : "VOICE OFF");
+};
+
+
 function showToast(msg, duration = 2500) {
   els.toast.textContent = msg;
   els.toast.classList.add("show");
@@ -574,6 +655,7 @@ function resolvePending(bubble, text) {
   bubble.innerHTML = "";
   bubble.textContent = text;
   bubble.classList.remove("pending");
+  nexusSpeak(text);
 }
 
 // ── AUTH ──
