@@ -2,768 +2,548 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#060a12">
 <title>N.E.X.U.S</title>
-<meta name="theme-color" content="#000508">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@300;400;600&display=swap" rel="stylesheet">
 <style>
-:root {
-  --cyan: #00e5ff;
-  --cyan-dim: #00e5ff44;
-  --cyan-faint: #00e5ff11;
-  --green: #00ff88;
-  --bg: #000508;
-  --bg2: #020d12;
-  --text: #b0d8e0;
-  --mono: 'Share Tech Mono', monospace;
-  --ui: 'Rajdhani', sans-serif;
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#060a12;--panel:#0d1421;--card:#111d2e;--border:#1a2a3a;
+  --gold:#f0c040;--gold-dim:#7a6020;--teal:#22d3c8;--blue:#3b82f6;
+  --red:#ef4444;--green:#22c55e;--amber:#f59e0b;--purple:#a78bfa;
+  --text:#e2e8f0;--muted:#64748b;--font:'Segoe UI',system-ui,sans-serif;
 }
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);overflow:hidden}
+#app{height:100vh;display:flex;flex-direction:column}
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; margin: 0; padding: 0; }
+/* NAV */
+#nav{display:flex;background:var(--panel);border-top:1px solid var(--border);padding:8px 0 calc(8px + env(safe-area-inset-bottom));position:fixed;bottom:0;left:0;right:0;z-index:100}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--muted);font-size:10px;padding:4px 0;border:none;background:none;cursor:pointer;transition:color .2s}
+.nav-btn.active{color:var(--gold)}
+.nav-icon{font-size:20px;line-height:1}
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--ui);
-  height: 100dvh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  position: relative;
-}
+/* PAGES */
+#pages{flex:1;overflow:hidden;padding-bottom:70px}
+.page{height:100%;overflow-y:auto;padding:0 0 16px;display:none;-webkit-overflow-scrolling:touch}
+.page.active{display:block}
 
-/* Ambient scanline overlay */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,229,255,0.015) 2px,
-    rgba(0,229,255,0.015) 4px
-  );
-  pointer-events: none;
-  z-index: 100;
-}
+/* HEADER */
+.page-header{padding:16px 16px 8px;position:sticky;top:0;background:var(--bg);z-index:10;border-bottom:1px solid var(--border)}
+.page-title{font-size:13px;font-weight:700;letter-spacing:.15em;color:var(--gold)}
+.page-sub{font-size:11px;color:var(--muted);margin-top:2px}
 
-/* ── PASSCODE SCREEN ── */
-#passcode-screen {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100dvh;
-  gap: 0;
-  padding: 32px 24px;
-}
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;margin:8px 12px;padding:14px;position:relative;overflow:hidden}
+.card-accent{border-left:3px solid var(--gold)}
+.card-teal{border-left:3px solid var(--teal)}
+.card-red{border-left:3px solid var(--red)}
+.card-green{border-left:3px solid var(--green)}
+.card-purple{border-left:3px solid var(--purple)}
+.card-label{font-size:9px;font-weight:700;letter-spacing:.12em;color:var(--muted);text-transform:uppercase;margin-bottom:6px}
+.card-value{font-size:28px;font-weight:700;line-height:1}
+.card-detail{font-size:12px;color:var(--muted);margin-top:4px}
+.section-label{font-size:9px;font-weight:700;letter-spacing:.15em;color:var(--gold-dim);text-transform:uppercase;padding:14px 14px 4px}
 
-.boot-logo {
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 6px;
-  color: var(--cyan);
-  text-align: center;
-  margin-bottom: 6px;
-  opacity: 0;
-  animation: fadeIn 0.8s 0.2s forwards;
-}
+/* METRICS ROW */
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 12px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center}
+.metric-val{font-size:20px;font-weight:700;line-height:1}
+.metric-lbl{font-size:9px;color:var(--muted);margin-top:3px}
 
-.boot-title {
-  font-family: var(--mono);
-  font-size: 28px;
-  letter-spacing: 10px;
-  color: var(--cyan);
-  text-align: center;
-  text-shadow: 0 0 20px var(--cyan), 0 0 40px var(--cyan-dim);
-  margin-bottom: 4px;
-  opacity: 0;
-  animation: fadeIn 0.8s 0.5s forwards;
-}
+/* FEED */
+.feed-event{display:flex;gap:10px;padding:12px;border-bottom:1px solid var(--border)}
+.feed-icon{font-size:18px;min-width:28px;text-align:center;padding-top:1px}
+.feed-body{flex:1;min-width:0}
+.feed-time{font-size:10px;color:var(--muted)}
+.feed-title{font-size:13px;font-weight:600;margin:2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed-detail{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed-project{font-size:10px;color:var(--teal);margin-top:2px}
+.feed-empty{text-align:center;padding:48px 24px;color:var(--muted);font-size:13px}
 
-.boot-sub {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 3px;
-  color: var(--cyan-dim);
-  text-align: center;
-  margin-bottom: 48px;
-  opacity: 0;
-  animation: fadeIn 0.6s 0.9s forwards;
-}
+/* CHAT */
+#chat-messages{padding:8px 12px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;height:calc(100vh - 200px)}
+.msg{max-width:85%;padding:10px 14px;border-radius:14px;font-size:14px;line-height:1.4;word-break:break-word}
+.msg-nexus{align-self:flex-start;background:var(--card);border:1px solid var(--border);border-radius:14px 14px 14px 2px}
+.msg-you{align-self:flex-end;background:var(--blue);color:#fff;border-radius:14px 14px 2px 14px}
+.msg-thinking{color:var(--muted);font-style:italic;font-size:13px}
+.chat-input-wrap{position:fixed;bottom:70px;left:0;right:0;background:var(--panel);border-top:1px solid var(--border);padding:10px 12px calc(10px + env(safe-area-inset-bottom));display:flex;gap:8px;align-items:flex-end;z-index:99}
+#chat-input{flex:1;background:var(--card);border:1px solid var(--border);border-radius:20px;padding:10px 16px;color:var(--text);font:inherit;font-size:14px;resize:none;max-height:100px;outline:none}
+.send-btn{background:var(--gold);color:#000;border:none;border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.mic-btn{background:var(--card);border:1px solid var(--border);border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.mic-btn.active{background:var(--red);border-color:var(--red)}
 
-/* Corner brackets decoration */
-.bracket-box {
-  position: relative;
-  width: 100%;
-  max-width: 300px;
-  padding: 28px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  opacity: 0;
-  animation: fadeIn 0.6s 1.1s forwards;
-}
-.bracket-box::before, .bracket-box::after,
-.bracket-box .br-bl::before, .bracket-box .br-bl::after {
-  content: '';
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  border-color: var(--cyan);
-  border-style: solid;
-  opacity: 0.5;
-}
-.bracket-box::before { top: 0; left: 0; border-width: 1px 0 0 1px; }
-.bracket-box::after  { top: 0; right: 0; border-width: 1px 1px 0 0; }
-.bracket-box .br-bl::before { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
-.bracket-box .br-bl::after  { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+/* COMMANDS */
+.cmd-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px 12px}
+.cmd-btn{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px 12px;cursor:pointer;display:flex;flex-direction:column;gap:4px;transition:border-color .2s}
+.cmd-btn:active{border-color:var(--gold)}
+.cmd-icon{font-size:22px}
+.cmd-label{font-size:12px;font-weight:600}
+.cmd-desc{font-size:10px;color:var(--muted)}
 
-#passcode-input {
-  background: var(--bg2);
-  border: 1px solid var(--cyan-dim);
-  color: var(--cyan);
-  font-family: var(--mono);
-  font-size: 20px;
-  text-align: center;
-  letter-spacing: 10px;
-  padding: 14px 16px;
-  border-radius: 4px;
-  width: 100%;
-  outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
-}
-#passcode-input:focus {
-  border-color: var(--cyan);
-  box-shadow: 0 0 12px var(--cyan-dim), inset 0 0 8px rgba(0,229,255,0.05);
-}
-#passcode-input::placeholder { color: var(--cyan-dim); letter-spacing: 4px; font-size: 13px; }
+/* STATUS INDICATORS */
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+.dot-green{background:var(--green)}
+.dot-red{background:var(--red)}
+.dot-amber{background:var(--amber)}
+.status-bar{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
 
-#passcode-submit {
-  background: transparent;
-  border: 1px solid var(--cyan);
-  color: var(--cyan);
-  font-family: var(--mono);
-  font-size: 12px;
-  letter-spacing: 4px;
-  padding: 13px;
-  border-radius: 4px;
-  width: 100%;
-  cursor: pointer;
-  transition: background 0.2s, box-shadow 0.2s;
-}
-#passcode-submit:active {
-  background: var(--cyan-faint);
-  box-shadow: 0 0 16px var(--cyan-dim);
-}
+/* PROGRESS BAR */
+.bar-wrap{height:4px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:6px}
+.bar-fill{height:100%;border-radius:2px;transition:width .4s;background:var(--teal)}
 
-#passcode-error {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: #ff4466;
-  text-align: center;
-  letter-spacing: 1px;
-  min-height: 16px;
-}
+/* NOTIFICATION BADGE */
+.badge{position:absolute;top:6px;right:6px;background:var(--red);color:#fff;border-radius:99px;font-size:10px;font-weight:700;min-width:16px;height:16px;display:flex;align-items:center;justify-content:center;padding:0 4px}
 
-/* ── APP SCREEN ── */
-#app-screen {
-  display: none;
-  flex-direction: column;
-  height: 100dvh;
-}
+/* STARK REVENUE */
+.revenue-big{font-size:36px;font-weight:800;color:var(--green);letter-spacing:-.02em}
+.revenue-sub{font-size:13px;color:var(--muted);margin-top:2px}
 
-/* Header */
-#app-header {
-  padding: 12px 16px 10px;
-  border-bottom: 1px solid var(--cyan-dim);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--bg);
-  flex-shrink: 0;
-  position: relative;
-}
-#app-header::after {
-  content: '';
-  position: absolute;
-  bottom: -1px;
-  left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-  opacity: 0.4;
-}
+/* OFFLINE BANNER */
+#offline-banner{display:none;position:fixed;top:0;left:0;right:0;background:var(--red);color:#fff;font-size:12px;font-weight:600;text-align:center;padding:8px;z-index:200}
 
-.header-left { display: flex; flex-direction: column; gap: 2px; }
-.header-title {
-  font-family: var(--mono);
-  font-size: 16px;
-  letter-spacing: 5px;
-  color: var(--cyan);
-  text-shadow: 0 0 10px var(--cyan-dim);
-}
-.header-sub {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 2px;
-  color: var(--cyan-dim);
-}
+/* PTT */
+.ptt-btn{width:72px;height:72px;border-radius:50%;background:var(--gold);border:none;font-size:28px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px rgba(240,192,64,.3);margin:16px auto;transition:transform .15s}
+.ptt-btn:active,.ptt-btn.active{transform:scale(1.1);box-shadow:0 0 30px rgba(240,192,64,.6)}
+.ptt-status{text-align:center;font-size:12px;color:var(--muted);margin-bottom:8px}
 
-.header-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-#status-label {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 2px;
-  color: #444;
-  transition: color 0.3s;
-}
-#status-label.connected { color: var(--green); }
+/* SPINNER */
+.spin{display:inline-block;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-#status-dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: #333;
-  transition: background 0.3s, box-shadow 0.3s;
-  flex-shrink: 0;
-}
-#status-dot.connected {
-  background: var(--green);
-  box-shadow: 0 0 6px var(--green), 0 0 12px rgba(0,255,136,0.3);
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0%, 100% { box-shadow: 0 0 6px var(--green), 0 0 12px rgba(0,255,136,0.3); }
-  50% { box-shadow: 0 0 10px var(--green), 0 0 20px rgba(0,255,136,0.5); }
-}
-
-/* Messages */
-#messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 16px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  scroll-behavior: smooth;
-}
-#messages::-webkit-scrollbar { width: 2px; }
-#messages::-webkit-scrollbar-track { background: transparent; }
-#messages::-webkit-scrollbar-thumb { background: var(--cyan-dim); border-radius: 2px; }
-
-.msg-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  animation: msgIn 0.2s ease-out;
-}
-@keyframes msgIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.msg-wrap.user { align-items: flex-end; }
-.msg-wrap.nexus { align-items: flex-start; }
-
-.msg-label {
-  font-family: var(--mono);
-  font-size: 8px;
-  letter-spacing: 2px;
-  padding: 0 4px;
-}
-.msg-wrap.user .msg-label { color: #446655; }
-.msg-wrap.nexus .msg-label { color: var(--cyan-dim); }
-
-.msg {
-  max-width: 88%;
-  padding: 10px 14px;
-  font-size: 15px;
-  line-height: 1.5;
-  font-family: var(--ui);
-  font-weight: 400;
-  border-radius: 3px;
-  position: relative;
-}
-
-.msg-wrap.user .msg {
-  background: #0d2420;
-  color: #c0e8d8;
-  border: 1px solid #1a4035;
-  border-radius: 12px 12px 3px 12px;
-}
-
-.msg-wrap.nexus .msg {
-  background: var(--bg2);
-  color: #a8dde8;
-  border: 1px solid var(--cyan-dim);
-  border-radius: 3px 12px 12px 12px;
-}
-.msg-wrap.nexus .msg::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 2px; height: 100%;
-  background: var(--cyan);
-  border-radius: 2px 0 0 2px;
-  opacity: 0.6;
-}
-
-.msg.pending {
-  opacity: 0.5;
-  font-style: italic;
-  color: var(--cyan-dim) !important;
-}
-
-/* Typing indicator dots */
-.typing-dots {
-  display: inline-flex;
-  gap: 4px;
-  align-items: center;
-  padding: 2px 0;
-}
-.typing-dots span {
-  width: 5px; height: 5px;
-  background: var(--cyan);
-  border-radius: 50%;
-  opacity: 0.3;
-  animation: dot-blink 1.2s infinite;
-}
-.typing-dots span:nth-child(2) { animation-delay: 0.2s; }
-.typing-dots span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes dot-blink {
-  0%, 80%, 100% { opacity: 0.2; transform: scale(0.8); }
-  40% { opacity: 1; transform: scale(1); }
-}
-
-/* Empty state */
-#empty-state {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  opacity: 0.25;
-  pointer-events: none;
-  font-family: var(--mono);
-}
-#empty-state .es-icon { font-size: 28px; color: var(--cyan); }
-#empty-state .es-text { font-size: 10px; letter-spacing: 3px; color: var(--cyan); }
-
-/* Input row */
-#input-row {
-  display: flex;
-  padding: 10px 12px;
-  gap: 8px;
-  border-top: 1px solid var(--cyan-dim);
-  background: var(--bg);
-  flex-shrink: 0;
-  align-items: flex-end;
-  position: relative;
-}
-#input-row::before {
-  content: '';
-  position: absolute;
-  top: -1px; left: 0; right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-  opacity: 0.3;
-}
-
-#text-input {
-  flex: 1;
-  background: var(--bg2);
-  border: 1px solid var(--cyan-dim);
-  color: var(--text);
-  padding: 11px 14px;
-  border-radius: 20px;
-  font-size: 15px;
-  font-family: var(--ui);
-  font-weight: 400;
-  outline: none;
-  resize: none;
-  max-height: 100px;
-  line-height: 1.4;
-  transition: border-color 0.2s;
-}
-#text-input:focus {
-  border-color: var(--cyan);
-}
-#text-input::placeholder { color: #2a4a50; }
-
-#send-btn {
-  background: var(--cyan-faint);
-  border: 1px solid var(--cyan);
-  color: var(--cyan);
-  width: 42px;
-  height: 42px;
-  border-radius: 50%;
-  font-size: 18px;
-  cursor: pointer;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.15s, box-shadow 0.15s;
-}
-#send-btn:active {
-  background: rgba(0,229,255,0.15);
-  box-shadow: 0 0 14px var(--cyan-dim);
-}
-#send-btn svg { width: 18px; height: 18px; stroke: var(--cyan); fill: none; stroke-width: 2; }
-
-/* Toast */
-#toast {
-  position: fixed;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%) translateY(20px);
-  background: #0a1f25;
-  border: 1px solid var(--cyan-dim);
-  color: var(--cyan);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 1px;
-  padding: 8px 16px;
-  border-radius: 4px;
-  opacity: 0;
-  transition: opacity 0.3s, transform 0.3s;
-  pointer-events: none;
-  z-index: 200;
-}
-#toast.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(0);
-}
-
-#voice-btn {
-  background: transparent;
-  border: 1px solid var(--cyan-dim);
-  color: var(--cyan);
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-  flex-shrink: 0;
-}
-#voice-btn.muted {
-  color: #444;
-  border-color: #333;
-}
-#voice-btn:active { background: var(--cyan-faint); }
-
-
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:99px}
 </style>
 </head>
 <body>
+<div id="offline-banner">⚠ N.E.X.U.S offline — relay unreachable</div>
+<div id="app">
+  <div id="pages">
 
-<!-- PASSCODE SCREEN -->
-<div id="passcode-screen">
-  <div class="boot-logo">PROJECT 001</div>
-  <div class="boot-title">N·E·X·U·S</div>
-  <div class="boot-sub">NEURAL EXECUTION &amp; UTILITY SYSTEM · V6.2</div>
-  <div class="bracket-box">
-    <div class="br-bl"></div>
-    <input id="passcode-input" type="password" placeholder="ACCESS CODE" autocomplete="off">
-    <button id="passcode-submit">CONNECT</button>
-    <div id="passcode-error"></div>
+    <!-- DASHBOARD -->
+    <div class="page active" id="p-dashboard">
+      <div class="page-header">
+        <div class="page-title">N·E·X·U·S</div>
+        <div class="page-sub" id="dash-status">Connecting...</div>
+      </div>
+      <div id="dash-guardian" class="card card-accent" style="margin-top:8px">
+        <div class="card-label">Guardian Status</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="dot dot-green" id="guardian-dot"></div>
+          <div style="font-size:16px;font-weight:700" id="guardian-text">—</div>
+        </div>
+      </div>
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-val" id="d-projects">—</div>
+          <div class="metric-lbl">Projects</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val" id="d-streams" style="color:var(--green)">—</div>
+          <div class="metric-lbl">Earning</div>
+        </div>
+        <div class="metric">
+          <div class="metric-val" id="d-burnout" style="color:var(--amber)">—</div>
+          <div class="metric-lbl">Burnout</div>
+        </div>
+      </div>
+      <div class="card card-green">
+        <div class="card-label">Stark — Revenue</div>
+        <div class="revenue-big" id="d-stark-rev">$0.00</div>
+        <div class="revenue-sub" id="d-stark-sub">This month</div>
+      </div>
+      <div class="card card-teal">
+        <div class="card-label">Active Project</div>
+        <div style="font-size:18px;font-weight:700" id="d-active-proj">—</div>
+        <div class="card-detail" id="d-mi">Mission Impossible: —</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Atlas — Today</div>
+        <div id="d-atlas">No plan yet</div>
+        <div class="card-detail" id="d-uptime"></div>
+      </div>
+      <div class="section-label">Today's Feed</div>
+      <div id="d-feed-preview"></div>
+    </div>
+
+    <!-- FOUNDER FEED -->
+    <div class="page" id="p-feed">
+      <div class="page-header">
+        <div class="page-title">Founder Feed</div>
+        <div class="page-sub" id="feed-count">Loading...</div>
+      </div>
+      <div id="feed-list"></div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="page" id="p-chat">
+      <div class="page-header">
+        <div class="page-title">Command</div>
+        <div class="status-bar"><div class="dot dot-green" id="chat-dot"></div><span id="chat-status">Connected</span></div>
+      </div>
+      <div id="chat-messages"></div>
+      <div class="chat-input-wrap">
+        <button class="mic-btn" id="mic-btn" title="Voice">🎙</button>
+        <textarea id="chat-input" rows="1" placeholder="Command N.E.X.U.S..."></textarea>
+        <button class="send-btn" id="send-btn">↑</button>
+      </div>
+    </div>
+
+    <!-- COMMANDS -->
+    <div class="page" id="p-commands">
+      <div class="page-header">
+        <div class="page-title">Remote Commands</div>
+        <div class="page-sub">PC executes — phone receives progress</div>
+      </div>
+      <div class="section-label">Research</div>
+      <div class="cmd-grid">
+        <div class="cmd-btn" onclick="quickCmd('Stark status')"><div class="cmd-icon">💰</div><div class="cmd-label">Stark Status</div><div class="cmd-desc">Revenue summary</div></div>
+        <div class="cmd-btn" onclick="quickCmd('Stark opportunities')"><div class="cmd-icon">🎯</div><div class="cmd-label">Opportunities</div><div class="cmd-desc">What's ready</div></div>
+        <div class="cmd-btn" onclick="quickCmd('what have I missed')"><div class="cmd-icon">🔮</div><div class="cmd-label">What Happened</div><div class="cmd-desc">Omega brief</div></div>
+        <div class="cmd-btn" onclick="quickCmd('system health')"><div class="cmd-icon">🛡</div><div class="cmd-label">System Health</div><div class="cmd-desc">All systems</div></div>
+        <div class="cmd-btn" onclick="quickCmd('atlas plan')"><div class="cmd-icon">📅</div><div class="cmd-label">Atlas Plan</div><div class="cmd-desc">Today\'s schedule</div></div>
+        <div class="cmd-btn" onclick="quickCmd('how much did I make')"><div class="cmd-icon">💵</div><div class="cmd-label">Revenue Brief</div><div class="cmd-desc">Daily P&L</div></div>
+        <div class="cmd-btn" onclick="quickCmd('run fabricator')"><div class="cmd-icon">⚙️</div><div class="cmd-label">Fabricator</div><div class="cmd-desc">Engineering run</div></div>
+        <div class="cmd-btn" onclick="quickCmd('Stark products')"><div class="cmd-icon">📦</div><div class="cmd-label">Products Ready</div><div class="cmd-desc">Deploy queue</div></div>
+      </div>
+      <div class="section-label">Engineering</div>
+      <div class="cmd-grid">
+        <div class="cmd-btn" onclick="promptCmd('research ')"><div class="cmd-icon">🔬</div><div class="cmd-label">Research</div><div class="cmd-desc">On any topic</div></div>
+        <div class="cmd-btn" onclick="promptCmd('evolve ')"><div class="cmd-icon">🧬</div><div class="cmd-label">Darwin</div><div class="cmd-desc">Evolve concept</div></div>
+        <div class="cmd-btn" onclick="promptCmd('work on ')"><div class="cmd-icon">🔧</div><div class="cmd-label">Workshop</div><div class="cmd-desc">Open project</div></div>
+        <div class="cmd-btn" onclick="quickCmd('stark brief')"><div class="cmd-icon">📊</div><div class="cmd-label">Stark Brief</div><div class="cmd-desc">Income report</div></div>
+      </div>
+    </div>
+
+    <!-- STARK -->
+    <div class="page" id="p-stark">
+      <div class="page-header">
+        <div class="page-title">Project Stark</div>
+        <div class="page-sub">Autonomous Wealth Engine</div>
+      </div>
+      <div class="card">
+        <div class="card-label">All-Time Revenue</div>
+        <div class="revenue-big" id="s-total">$0.00</div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-val" id="s-month" style="color:var(--teal)">$0</div><div class="metric-lbl">Month</div></div>
+        <div class="metric"><div class="metric-val" id="s-week" style="color:var(--blue)">$0</div><div class="metric-lbl">Week</div></div>
+        <div class="metric"><div class="metric-val" id="s-yesterday" style="color:var(--muted)">$0</div><div class="metric-lbl">Yesterday</div></div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><div class="metric-val" id="s-streams">0</div><div class="metric-lbl">Streams</div></div>
+        <div class="metric"><div class="metric-val" id="s-earning" style="color:var(--green)">0</div><div class="metric-lbl">Earning</div></div>
+        <div class="metric"><div class="metric-val" id="s-ready" style="color:var(--amber)">0</div><div class="metric-lbl">Ready</div></div>
+      </div>
+      <div class="section-label">Quick Actions</div>
+      <div class="cmd-grid">
+        <div class="cmd-btn" onclick="quickCmd('Stark opportunities')"><div class="cmd-icon">🎯</div><div class="cmd-label">Opportunities</div></div>
+        <div class="cmd-btn" onclick="quickCmd('Stark products')"><div class="cmd-icon">📦</div><div class="cmd-label">Products Ready</div></div>
+        <div class="cmd-btn" onclick="quickCmd('stark publish')"><div class="cmd-icon">🚀</div><div class="cmd-label">Auto-Publish</div></div>
+        <div class="cmd-btn" onclick="quickCmd('stark streams')"><div class="cmd-icon">💹</div><div class="cmd-label">All Streams</div></div>
+      </div>
+      <div class="section-label">Recent Stark Feed</div>
+      <div id="stark-feed"></div>
+    </div>
+
+  </div>
+
+  <!-- NAV BAR -->
+  <div id="nav">
+    <button class="nav-btn active" onclick="showPage('dashboard','this')"><div class="nav-icon">⌂</div>Dashboard</button>
+    <button class="nav-btn" onclick="showPage('feed','this')"><div class="nav-icon">📡</div>Feed<span class="badge" id="feed-badge" style="display:none">0</span></button>
+    <button class="nav-btn" onclick="showPage('chat','this')"><div class="nav-icon">◈</div>Command</button>
+    <button class="nav-btn" onclick="showPage('commands','this')"><div class="nav-icon">⚡</div>Quick</button>
+    <button class="nav-btn" onclick="showPage('stark','this')"><div class="nav-icon">💰</div>Stark</button>
   </div>
 </div>
-
-<!-- APP SCREEN -->
-<div id="app-screen">
-  <div id="app-header">
-    <div class="header-left">
-      <div class="header-title">N·E·X·U·S</div>
-      <div class="header-sub">MOBILE BRIDGE · V6.2</div>
-    </div>
-    <div class="header-right">
-      <button id="voice-btn" title="Toggle voice">
-        <svg id="voice-icon-on" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
-        </svg>
-        <svg id="voice-icon-off" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="display:none">
-          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>
-        </svg>
-      </button>
-      <div id="status-label">OFFLINE</div>
-      <div id="status-dot"></div>
-    </div>
-  </div>
-
-  <div id="messages">
-    <div id="empty-state">
-      <div class="es-icon">◈</div>
-      <div class="es-text">AWAITING INPUT</div>
-    </div>
-  </div>
-
-  <div id="input-row">
-    <textarea id="text-input" rows="1" placeholder="Message N.E.X.U.S..." autocomplete="off"></textarea>
-    <button id="send-btn">
-      <svg viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
-    </button>
-  </div>
-</div>
-
-<div id="toast"></div>
 
 <script>
-// N.E.X.U.S V6.2 — Mobile Bridge Stage A
-// Same mind. Not a second personality.
+// ── CONFIG ──────────────────────────────────────────────────────────────
+const BASE    = window.location.origin;
+const PASS    = localStorage.getItem('nexus_pass') || promptPass();
+let   online  = true;
+let   polling = null;
+let   feedUnread = 0;
 
-// Passcode is session-only -- never persisted to localStorage.
-// Every time the app is opened, the Founder must authenticate.
-let passcode = "";
-
-const els = {
-  passcodeScreen: document.getElementById("passcode-screen"),
-  appScreen:      document.getElementById("app-screen"),
-  passcodeInput:  document.getElementById("passcode-input"),
-  passcodeSubmit: document.getElementById("passcode-submit"),
-  passcodeError:  document.getElementById("passcode-error"),
-  messages:       document.getElementById("messages"),
-  emptyState:     document.getElementById("empty-state"),
-  textInput:      document.getElementById("text-input"),
-  sendBtn:        document.getElementById("send-btn"),
-  statusDot:      document.getElementById("status-dot"),
-  statusLabel:    document.getElementById("status-label"),
-  toast:          document.getElementById("toast"),
-};
-
-// ── VOICE (TTS) ──
-let voiceEnabled = true;
-let ttsVoice = null;
-
-// Load voices — on mobile they load async
-function loadVoices() {
-  const voices = window.speechSynthesis.getVoices();
-  // Prefer a deep English male voice
-  const preferred = [
-    v => v.name.toLowerCase().includes("google uk english male"),
-    v => v.name.toLowerCase().includes("microsoft david"),
-    v => v.name.toLowerCase().includes("alex"),
-    v => v.lang === "en-US" && v.name.toLowerCase().includes("male"),
-    v => v.lang === "en-GB",
-    v => v.lang.startsWith("en"),
-  ];
-  for (const test of preferred) {
-    const match = voices.find(test);
-    if (match) { ttsVoice = match; break; }
-  }
-}
-loadVoices();
-if (window.speechSynthesis.onvoiceschanged !== undefined) {
-  window.speechSynthesis.onvoiceschanged = loadVoices;
+function promptPass() {
+  const p = prompt('N.E.X.U.S Passcode:') || '';
+  if (p) localStorage.setItem('nexus_pass', p);
+  return p;
 }
 
-function nexusSpeak(text) {
-  if (!voiceEnabled) return;
-  if (!window.speechSynthesis) return;
-  // Strip connection test responses
-  if (text === "CONNECTION_TEST_OK") return;
-  window.speechSynthesis.cancel();
-  const utt = new SpeechSynthesisUtterance(text);
-  if (ttsVoice) utt.voice = ttsVoice;
-  utt.rate  = 0.88;   // slightly slower = more deliberate
-  utt.pitch = 0.75;   // lower pitch = authoritative
-  utt.volume = 1.0;
-  window.speechSynthesis.speak(utt);
+function headers() {
+  return { 'Content-Type':'application/json', 'x-nexus-passcode': PASS };
 }
 
-const voiceBtn   = document.getElementById("voice-btn");
-const iconOn     = document.getElementById("voice-icon-on");
-const iconOff    = document.getElementById("voice-icon-off");
-
-voiceBtn.onclick = () => {
-  voiceEnabled = !voiceEnabled;
-  voiceBtn.classList.toggle("muted", !voiceEnabled);
-  iconOn.style.display  = voiceEnabled ? "" : "none";
-  iconOff.style.display = voiceEnabled ? "none" : "";
-  if (!voiceEnabled) window.speechSynthesis.cancel();
-  showToast(voiceEnabled ? "VOICE ON" : "VOICE OFF");
-};
-
-
-function showToast(msg, duration = 2500) {
-  els.toast.textContent = msg;
-  els.toast.classList.add("show");
-  setTimeout(() => els.toast.classList.remove("show"), duration);
-}
-
-// ── STATUS ──
-function setStatus(connected) {
-  els.statusDot.className = connected ? "connected" : "";
-  els.statusLabel.className = connected ? "connected" : "";
-  els.statusLabel.textContent = connected ? "ONLINE" : "OFFLINE";
-}
-
-async function checkHealth() {
+async function api(method, path, body=null) {
   try {
-    const r = await fetch("/health");
-    const d = await r.json();
-    setStatus(d.desktop_connected === true);
-  } catch {
-    setStatus(false);
+    const opts = { method, headers: headers() };
+    if (body) opts.body = JSON.stringify(body);
+    const r = await fetch(BASE + path, opts);
+    if (!r.ok) throw new Error(r.status);
+    setOnline(true);
+    return await r.json();
+  } catch(e) {
+    setOnline(false);
+    return null;
   }
 }
 
-// ── MESSAGES ──
-let msgCount = 0;
+function setOnline(v) {
+  online = v;
+  document.getElementById('offline-banner').style.display = v ? 'none' : 'block';
+}
 
-function addMessage(text, role, pending = false) {
-  if (msgCount === 0) els.emptyState.style.display = "none";
-  msgCount++;
+// ── NAVIGATION ───────────────────────────────────────────────────────────
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('p-' + id).classList.add('active');
+  if (btn !== 'this') return;
+  event.currentTarget.classList.add('active');
+  if (id === 'feed') { feedUnread = 0; updateFeedBadge(); }
+}
 
-  const wrap = document.createElement("div");
-  wrap.className = `msg-wrap ${role}`;
+function updateFeedBadge() {
+  const b = document.getElementById('feed-badge');
+  if (feedUnread > 0) { b.textContent = feedUnread; b.style.display = ''; }
+  else b.style.display = 'none';
+}
 
-  const label = document.createElement("div");
-  label.className = "msg-label";
-  label.textContent = role === "user" ? "YOU" : "N.E.X.U.S";
+// ── DASHBOARD ────────────────────────────────────────────────────────────
+async function refreshDashboard() {
+  const d = await api('GET', '/sync/pull');
+  if (!d) return;
 
-  const bubble = document.createElement("div");
-  bubble.className = "msg" + (pending ? " pending" : "");
+  document.getElementById('dash-status').textContent =
+    d.synced_at ? 'Last sync ' + d.synced_at.substring(11,16) + ' UTC' : 'PC offline';
 
-  if (pending) {
-    bubble.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
-  } else {
-    bubble.textContent = text;
+  // Guardian
+  const threat = d.threat || 'UNKNOWN';
+  const dot    = document.getElementById('guardian-dot');
+  const gtext  = document.getElementById('guardian-text');
+  gtext.textContent = threat;
+  dot.className = 'dot ' + ({GREEN:'dot-green',YELLOW:'dot-amber',
+                              ORANGE:'dot-amber',RED:'dot-red'}[threat] || 'dot-amber');
+
+  // Metrics
+  document.getElementById('d-projects').textContent = (d.projects||[]).length || '—';
+  const s = d.stark || {};
+  document.getElementById('d-streams').textContent  = s.earning_streams ?? '—';
+  const h = d.health || {};
+  const riskMap = {low:'Low',medium:'Med',high:'High',critical:'CRIT'};
+  document.getElementById('d-burnout').textContent  = riskMap[h.burnout_risk] || '—';
+  const riskColMap = {low:'var(--green)',medium:'var(--amber)',high:'var(--red)',critical:'var(--red)'};
+  document.getElementById('d-burnout').style.color  = riskColMap[h.burnout_risk] || 'var(--muted)';
+
+  // Stark revenue
+  document.getElementById('d-stark-rev').textContent = '$' + (s.month_revenue||0).toFixed(2);
+  document.getElementById('d-stark-sub').textContent  =
+    `Month · $${(s.total_revenue||0).toFixed(2)} all-time`;
+
+  // Active project
+  document.getElementById('d-active-proj').textContent = d.active_project || 'None';
+  const mi = d.mi || {};
+  document.getElementById('d-mi').textContent =
+    mi.closest ? `MI: ${mi.closest} — ${(mi.closest_feasibility*100).toFixed(0)}%` : '';
+
+  // Atlas
+  const plan = d.atlas || {};
+  const pris = plan.priorities || [];
+  if (pris.length) {
+    document.getElementById('d-atlas').innerHTML = pris.slice(0,3).map(p =>
+      `<div style="font-size:13px;padding:3px 0;border-bottom:1px solid var(--border)">
+         ${p.title} <span style="color:var(--teal);float:right">${(p.prob*100).toFixed(0)}%</span>
+       </div>`
+    ).join('');
   }
+  document.getElementById('d-uptime').textContent = d.uptime ? 'Uptime: ' + d.uptime : '';
 
-  wrap.appendChild(label);
-  wrap.appendChild(bubble);
-  els.messages.appendChild(wrap);
-  els.messages.scrollTop = els.messages.scrollHeight;
-  return bubble;
+  // Stark page
+  document.getElementById('s-total').textContent     = '$' + (s.total_revenue||0).toFixed(2);
+  document.getElementById('s-month').textContent     = '$' + (s.month_revenue||0).toFixed(0);
+  document.getElementById('s-week').textContent      = '$' + (s.week_revenue||0).toFixed(0);
+  document.getElementById('s-yesterday').textContent = '$' + (s.yesterday||0).toFixed(0);
+  document.getElementById('s-streams').textContent   = s.total_streams || 0;
+  document.getElementById('s-earning').textContent   = s.earning_streams || 0;
+  document.getElementById('s-ready').textContent     = s.ready_products || 0;
 }
 
-function resolvePending(bubble, text) {
-  bubble.innerHTML = "";
-  bubble.textContent = text;
-  bubble.classList.remove("pending");
-  nexusSpeak(text);
+// ── FOUNDER FEED ─────────────────────────────────────────────────────────
+async function refreshFeed() {
+  const d = await api('GET', '/feed?limit=80');
+  if (!d) return;
+
+  const events = d.events || [];
+  const unread = events.filter(e => !e.read).length;
+  if (unread > 0) { feedUnread += unread; updateFeedBadge(); }
+
+  document.getElementById('feed-count').textContent =
+    `${events.length} events · ${unread} new`;
+
+  const feedEl   = document.getElementById('feed-list');
+  const previewEl= document.getElementById('d-feed-preview');
+  const starkEl  = document.getElementById('stark-feed');
+
+  const renderEvent = e => `
+    <div class="feed-event">
+      <div class="feed-icon">${e.icon||'✓'}</div>
+      <div class="feed-body">
+        <div style="display:flex;justify-content:space-between">
+          <span class="feed-time">${e.time||'—'}</span>
+          <span class="feed-time" style="color:${
+            e.priority==='critical'?'var(--red)':
+            e.priority==='high'?'var(--amber)':'var(--muted)'}">${e.subsystem||''}</span>
+        </div>
+        <div class="feed-title">${e.title||''}</div>
+        ${e.detail ? `<div class="feed-detail">${e.detail}</div>` : ''}
+        ${e.project ? `<div class="feed-project">◆ ${e.project}</div>` : ''}
+      </div>
+    </div>`;
+
+  if (feedEl) feedEl.innerHTML = events.length
+    ? events.map(renderEvent).join('')
+    : `<div class="feed-empty">🤖 Feed is empty.<br>N.E.X.U.S will post here when it works.</div>`;
+
+  if (previewEl) previewEl.innerHTML = events.slice(0,3).map(renderEvent).join('');
+
+  const starkEvents = events.filter(e => e.subsystem === 'stark');
+  if (starkEl) starkEl.innerHTML = starkEvents.length
+    ? starkEvents.slice(0,5).map(renderEvent).join('')
+    : `<div class="feed-empty" style="padding:16px">No Stark activity yet</div>`;
 }
 
-// ── AUTH ──
-async function verifyPasscode(code) {
-  try {
-    const r = await fetch("/phone/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-nexus-passcode": code },
-      body: JSON.stringify({ text: "__connection_test__" }),
-    });
-    return r.status !== 401;
-  } catch {
-    return false;
-  }
+// ── NOTIFICATIONS ─────────────────────────────────────────────────────────
+async function checkNotifications() {
+  const d = await api('GET', '/notify/poll');
+  if (!d || !d.notifications?.length) return;
+  d.notifications.forEach(n => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      new Notification('N.E.X.U.S: ' + n.title, { body: n.body });
+    }
+    // Also show in chat
+    appendMsg('nexus', `📡 ${n.title}\n${n.body}`);
+  });
 }
 
-async function enterApp() {
-  els.passcodeScreen.style.display = "none";
-  els.appScreen.style.display = "flex";
-  checkHealth();
-  setInterval(checkHealth, 15000);
-  els.textInput.focus();
+// ── CHAT ──────────────────────────────────────────────────────────────────
+function appendMsg(role, text) {
+  const el = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = role === 'nexus' ? 'msg msg-nexus' : 'msg msg-you';
+  div.textContent = text;
+  el.appendChild(div);
+  el.scrollTop = el.scrollHeight;
+  return div;
 }
 
-els.passcodeSubmit.onclick = async () => {
-  const code = els.passcodeInput.value.trim();
-  if (!code) return;
-  els.passcodeError.textContent = "CONNECTING...";
-  els.passcodeError.style.color = "var(--cyan-dim)";
-  const ok = await verifyPasscode(code);
-  if (ok) {
-    passcode = code;
-    enterApp();
-  } else {
-    els.passcodeError.style.color = "#ff4466";
-    els.passcodeError.textContent = "ACCESS DENIED — check passcode or relay status";
-  }
-};
+async function sendMessage(text) {
+  if (!text.trim()) return;
+  appendMsg('you', text);
+  const thinking = appendMsg('nexus', '⋯');
+  thinking.classList.add('msg-thinking');
 
-els.passcodeInput.addEventListener("keydown", e => {
-  if (e.key === "Enter") { e.preventDefault(); els.passcodeSubmit.click(); }
+  const r = await api('POST', '/phone/send', {text});
+  if (!r) { thinking.textContent = '⚠ Offline'; return; }
+
+  const id = r.request_id;
+  let attempts = 0;
+  const poll = setInterval(async () => {
+    attempts++;
+    const resp = await api('GET', `/phone/poll/${id}`);
+    if (resp?.ready) {
+      clearInterval(poll);
+      thinking.classList.remove('msg-thinking');
+      thinking.textContent = resp.text;
+      document.getElementById('chat-messages').scrollTop = 999999;
+    }
+    if (attempts > 30) { clearInterval(poll); thinking.textContent = '⚠ No response'; }
+  }, 1000);
+}
+
+// Send button
+document.getElementById('send-btn').addEventListener('click', () => {
+  const el = document.getElementById('chat-input');
+  sendMessage(el.value);
+  el.value = '';
+  el.style.height = '';
 });
 
-// ── SEND ──
-async function sendMessage() {
-  const text = els.textInput.value.trim();
-  if (!text) return;
-  els.textInput.value = "";
-  els.textInput.style.height = "";
-  addMessage(text, "user");
-
-  const pendingBubble = addMessage("", "nexus", true);
-
-  try {
-    const sendResp = await fetch("/phone/send", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-nexus-passcode": passcode },
-      body: JSON.stringify({ text }),
-    });
-
-    if (sendResp.status === 401) {
-      resolvePending(pendingBubble, "Session expired. Please reconnect.");
-      setTimeout(() => location.reload(), 2000);
-      return;
-    }
-
-    const { request_id } = await sendResp.json();
-
-    // Poll for real desktop response — never fabricate
-    let attempts = 0;
-    const MAX = 40;
-    const poll = async () => {
-      try {
-        const r = await fetch(`/phone/poll/${request_id}`, {
-          headers: { "x-nexus-passcode": passcode },
-        });
-        const d = await r.json();
-        if (d.ready) {
-          resolvePending(pendingBubble, d.text);
-        } else if (++attempts >= MAX) {
-          resolvePending(pendingBubble, "No response, Sir. Desktop N.E.X.U.S may be offline.");
-        } else {
-          setTimeout(poll, 1000);
-        }
-      } catch {
-        resolvePending(pendingBubble, "Connection lost, Sir.");
-      }
-    };
-    poll();
-
-  } catch {
-    resolvePending(pendingBubble, "Relay unreachable, Sir.");
+// Enter key
+document.getElementById('chat-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    document.getElementById('send-btn').click();
   }
-}
-
-els.sendBtn.onclick = sendMessage;
-
-els.textInput.addEventListener("keydown", e => {
-  if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
 // Auto-resize textarea
-els.textInput.addEventListener("input", () => {
-  els.textInput.style.height = "auto";
-  els.textInput.style.height = Math.min(els.textInput.scrollHeight, 100) + "px";
+document.getElementById('chat-input').addEventListener('input', function() {
+  this.style.height = '';
+  this.style.height = Math.min(this.scrollHeight, 100) + 'px';
 });
 
-// No auto-reconnect -- passcode required on every session open.
+// Mic / PTT
+let recognition = null;
+const micBtn = document.getElementById('mic-btn');
+micBtn.addEventListener('click', () => {
+  if (!('webkitSpeechRecognition' in window || 'SpeechRecognition' in window)) {
+    alert('Voice not supported in this browser. Use Chrome.');
+    return;
+  }
+  if (recognition) { recognition.stop(); return; }
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  recognition = new SR();
+  recognition.lang = 'en-US';
+  recognition.interimResults = false;
+  micBtn.classList.add('active');
+  micBtn.textContent = '🔴';
+  recognition.onresult = e => {
+    const text = e.results[0][0].transcript;
+    document.getElementById('chat-input').value = text;
+    sendMessage(text);
+  };
+  recognition.onend = () => {
+    micBtn.classList.remove('active');
+    micBtn.textContent = '🎙';
+    recognition = null;
+  };
+  recognition.start();
+});
+
+// Quick commands
+function quickCmd(cmd) {
+  showPage('chat', null);
+  document.querySelectorAll('.nav-btn').forEach((b,i) => b.classList.toggle('active', i===2));
+  sendMessage(cmd);
+}
+
+function promptCmd(prefix) {
+  const rest = prompt(prefix.trim() + ' (what topic?)');
+  if (rest) quickCmd(prefix + rest);
+}
+
+// ── MASTER REFRESH LOOP ──────────────────────────────────────────────────
+async function tick() {
+  await Promise.all([
+    refreshDashboard(),
+    refreshFeed(),
+    checkNotifications(),
+  ]);
+}
+
+// Request notification permission
+if ('Notification' in window && Notification.permission === 'default') {
+  Notification.requestPermission();
+}
+
+// Initial load + polling
+tick();
+setInterval(tick, 15000);   // refresh every 15 seconds
 </script>
 </body>
 </html>
